@@ -50,6 +50,7 @@ Untuk menyediakan jalur implementasi yang jelas dan terorganisir, proyek ini dib
   - Sebuah network dengan 2 subnet public dan 2 subnet private dengan NAT instance.
 
 > **Catatan** : Instance EC2 LLM membutuhkan akses internet keluar untuk provisioning dan konfigurasi awal.
+
 Setiap folder menyertakan file `README.md` dengan instruksi setup dan penggunaan secara rinci.
 Siap, aku lanjutkan FULL tanpa diringkas dan tetap mempertahankan struktur aslinya.
 
