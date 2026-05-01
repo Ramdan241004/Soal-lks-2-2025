@@ -66,16 +66,10 @@ Alur respons dimulai ketika pengguna mengklik tombol aksi (di UI atau notifikasi
 
 - **Action Routing:**
 Lambda function tersebut memicu **Incident Action Step Function** yang mengarahkan logika berdasarkan jenis insiden. Desain ini mendukung percabangan keputusan yang dapat diskalakan dan memungkinkan fleksibilitas dalam mendefinisikan aturan aksi baru seiring waktu. Dalam mode otomatis, sistem melakukan langkah mitigasi yang telah ditentukan berdasarkan jenis insiden:
-
-**HIGH_CPU:** Meluncurkan instance EC2 pengganti dengan vCPU yang ditingkatkan.
-
-**HIGH_MEM**: Meluncurkan instance EC2 pengganti dengan memori yang lebih besar.
-
-**APP_CRASH:** Me-restart service yang relevan.
-
-**APP_SHUTDOWN**: Mencoba pemulihan penuh atau memulai strategi fallback.
-
-
+  **HIGH_CPU:** Meluncurkan instance EC2 pengganti dengan vCPU yang ditingkatkan.
+  **HIGH_MEM**: Meluncurkan instance EC2 pengganti dengan memori yang lebih besar.
+  **APP_CRASH:** Me-restart service yang relevan.
+  **APP_SHUTDOWN**: Mencoba pemulihan penuh atau memulai strategi fallback.
 Namun, beberapa jenis insiden tidak didukung untuk penanganan otomatis. Dalam kasus tersebut, sistem harus memberikan notifikasi bahwa tindakan tidak dapat dilakukan secara otomatis, dan data insiden harus diperbarui secara manual. Lambda function telah disiapkan untuk menangani hal ini. Untuk informasi lebih lanjut, silakan merujuk ke dokumentasi AWS Lambda dan bagian AWS Step Function.
 
 - **Success and Error:**
