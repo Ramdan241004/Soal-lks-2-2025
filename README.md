@@ -1,5 +1,13 @@
 # Soal-lks-2-2025
 
+Username: 165111-7
+Password: EVSnoujuDb
+
+Username: 165111-6
+Password: UNfBbwh6pN
+
+Username: 165111-13
+Password: 43lk8Y0qTi
 # Description of project and tasks
 Modul ini berdurasi 5 jam - **Hari 1 – Proyek 1: Sistem Respons Insiden**.
 Dalam proyek ini, Anda akan mengambil peran sebagai Cloud Operations Engineer yang bertanggung jawab untuk merancang dan mengorkestrasi Sistem Respons Insiden yang terintegrasi dengan merancang sistem yang aman, dapat diskalakan, dan akurat, yang didukung oleh Generative AI. Sistem ini harus mampu secara proaktif mendeteksi dan melacak insiden infrastruktur, terutama yang dapat menyebabkan error atau gangguan kritis. Sistem ini juga harus melacak siklus hidup setiap insiden dari deteksi hingga penyelesaian, menyediakan visibilitas dan akuntabilitas penuh. Dengan dukungan AI, sistem harus dapat merangkum insiden, menghasilkan laporan yang informatif, dan membantu dalam analisis akar penyebab, sehingga mempercepat respons operasional dan mengurangi upaya manual dalam situasi bertekanan tinggi.
