@@ -53,115 +53,53 @@ Untuk menyediakan jalur implementasi yang jelas dan terorganisir, proyek ini dib
 Setiap folder menyertakan file `README.md` dengan instruksi setup dan penggunaan secara rinci.
 Siap, aku lanjutkan FULL tanpa diringkas dan tetap mempertahankan struktur aslinya.
 
-
----
-
-PoC 1: Incident Detection Workflow
-
-Pada proof of concept pertama (PoC 1), alur penanganan insiden dimulai dengan menginstal CloudWatch Agent pada instance EC2 target. Agent ini mengumpulkan metrik resource sistem dan log aplikasi, serta membuat CloudWatch log group baru. Log filter dikonfigurasi untuk mendeteksi kata kunci tertentu seperti "APP_CRASH," "APP_ERROR," dan "SHUTDOWN," yang membantu mengidentifikasi masalah pada level aplikasi. Selain itu, metric filter digunakan untuk memantau penggunaan CPU di atas 70% dan penggunaan memori di atas 80%. Ketika ambang batas ini terlampaui atau entri log yang sesuai ditemukan, CloudWatch Alarm akan terpicu dan memanggil AWS Step Function. Step Function ini mengorkestrasi proses penanganan insiden dengan membuat record insiden baru di DynamoDB, menghasilkan ringkasan laporan dan saran tindakan menggunakan large language model (LLM), dan mengirimkan notifikasi. Notifikasi tersebut mencakup opsi konfirmasi untuk penanganan manual atau otomatis terhadap insiden, tergantung pada jenis insiden dan kebijakan yang telah ditentukan sebelumnya.
+### PoC 1: Incident Detection Workflow
+Pada proof of concept pertama (PoC 1), alur penanganan insiden dimulai dengan menginstal **CloudWatch Agent** pada instance EC2 target. Agent ini mengumpulkan metrik resource sistem dan log aplikasi, serta membuat **CloudWatch log group** baru. Log filter dikonfigurasi untuk mendeteksi kata kunci tertentu seperti "**APP_CRASH**," "**APP_ERROR**," dan "**SHUTDOWN**," yang membantu mengidentifikasi masalah pada level aplikasi. Selain itu, metric filter digunakan untuk memantau penggunaan CPU di atas 70% dan penggunaan memori di atas 80%. Ketika ambang batas ini terlampaui atau entri log yang sesuai ditemukan, CloudWatch Alarm akan terpicu dan memanggil **AWS Step Function**. Step Function ini mengorkestrasi proses penanganan insiden dengan membuat record insiden baru di DynamoDB, menghasilkan ringkasan laporan dan saran tindakan menggunakan large language model (LLM), dan mengirimkan notifikasi. Notifikasi tersebut mencakup opsi konfirmasi untuk penanganan manual atau otomatis terhadap insiden, tergantung pada jenis insiden dan kebijakan yang telah ditentukan sebelumnya.
 
 
----
-
-PoC 2: Incident Handling and Action
-
+### PoC 2: Incident Handling and Action
 Untuk memungkinkan mekanisme respons insiden yang mulus dan fleksibel yang mendukung baik tindakan otomatis maupun manual berdasarkan jenis insiden dan keputusan responden, yang diorkestrasi melalui layanan AWS.
 
-
----
-
-Workflow Summary:
-
-• Trigger via Action Button (Manual/Auto):
+**Workflow Summary:**
+• **Trigger via Action Button (Manual/Auto):**
 Alur respons dimulai ketika pengguna mengklik tombol aksi (di UI atau notifikasi) atau ketika aturan otomatis terpicu. Hal ini mengirimkan incident_id dan mode yang dipilih (manual atau auto) melalui API Gateway ke Lambda function khusus.
 
-
----
-
-• Action Routing:
-Lambda function tersebut memicu Incident Action Step Function yang mengarahkan logika berdasarkan jenis insiden. Desain ini mendukung percabangan keputusan yang dapat diskalakan dan memungkinkan fleksibilitas dalam mendefinisikan aturan aksi baru seiring waktu. Dalam mode otomatis, sistem melakukan langkah mitigasi yang telah ditentukan berdasarkan jenis insiden:
-
-HIGH_CPU: Meluncurkan instance EC2 pengganti dengan vCPU yang ditingkatkan.
-
-HIGH_MEM: Meluncurkan instance EC2 pengganti dengan memori yang lebih besar.
-
-APP_CRASH: Me-restart service yang relevan.
-
-APP_SHUTDOWN: Mencoba pemulihan penuh atau memulai strategi fallback.
-
-
+• **Action Routing:**
+Lambda function tersebut memicu **Incident Action Step Function** yang mengarahkan logika berdasarkan jenis insiden. Desain ini mendukung percabangan keputusan yang dapat diskalakan dan memungkinkan fleksibilitas dalam mendefinisikan aturan aksi baru seiring waktu. Dalam mode otomatis, sistem melakukan langkah mitigasi yang telah ditentukan berdasarkan jenis insiden:
+**HIGH_CPU:** Meluncurkan instance EC2 pengganti dengan vCPU yang ditingkatkan.
+**HIGH_MEM**: Meluncurkan instance EC2 pengganti dengan memori yang lebih besar.
+**APP_CRASH:** Me-restart service yang relevan.
+**APP_SHUTDOWN**: Mencoba pemulihan penuh atau memulai strategi fallback.
 Namun, beberapa jenis insiden tidak didukung untuk penanganan otomatis. Dalam kasus tersebut, sistem harus memberikan notifikasi bahwa tindakan tidak dapat dilakukan secara otomatis, dan data insiden harus diperbarui secara manual. Lambda function telah disiapkan untuk menangani hal ini. Untuk informasi lebih lanjut, silakan merujuk ke dokumentasi AWS Lambda dan bagian AWS Step Function.
 
+• **Success and Error:**
+Jika mode diatur ke manual atau jenis insiden tidak dapat diselesaikan secara otomatis, insiden akan ditandai sebagai **pending_action**. **Notifikasi konfirmasi** dikirim ke pengguna atau grup yang bertanggung jawab melalui SNS.
 
----
-
-• Success and Error:
-Jika mode diatur ke manual atau jenis insiden tidak dapat diselesaikan secara otomatis, insiden akan ditandai sebagai pending_action. Notifikasi konfirmasi dikirim ke pengguna atau grup yang bertanggung jawab melalui SNS.
-
-
----
-
-• State Update:
+• **State Update:**
 Setelah tindakan—baik manual maupun otomatis—selesai, status insiden diperbarui di DynamoDB. Notifikasi akhir dikirim dengan hasil (success, failed, needs follow-up) untuk memberikan transparansi dan kemampuan audit.
 
-
----
-
-PoC 3: Incident Vectorization for AI Integration
-
+### PoC 3: Incident Vectorization for AI Integration
 Untuk membangun pipeline setelah penyelesaian yang mengubah insiden yang telah diselesaikan menjadi representasi vektor untuk memori generative AI dan fungsi asisten DevOps.
 
+**Workflow Summary**:
+1. **Stream Activation from DynamoDB**:
+  - DynamoDB stream diaktifkan untuk menangkap perubahan **secara real-time**, terutama ketika insiden ditandai sebagai resolved.
 
----
+2. **Data Stream Processing**:
+  - Data dialirkan melalui **Kinesis (atau stream serupa)** ke komponen filtering yang memastikan hanya insiden yang telah selesai (solved) yang diproses. Nama atribut adalah `status` dan nilainya harus salah satu dari `solved` atau `done`. Nilai selain `solved` dan `done` tidak dapat diproses.
 
-Workflow Summary:
+3. **Filtering & Transformation**:
+  - Sebuah mekanisme filter memvalidasi jenis insiden, status penyelesaian, dan mengekstrak informasi yang bermakna sebelum dilakukan vectorization.
+  - Gunakan event bridge pipeline.
 
-1. Stream Activation from DynamoDB:
-DynamoDB stream diaktifkan untuk menangkap perubahan secara real-time, terutama ketika insiden ditandai sebagai resolved.
+4. **Vectorization Lambda**:
+  - Sebuah Lambda function khusus mengubah data ini menjadi vector embeddings (misalnya, menggunakan Sentence Transformers atau model serupa).
 
+5. **Vector Storage**:
+  - Embedding kemudian disimpan dalam **Vector Database (misalnya, pgvector atau yang serupa)** untuk memungkinkan pencarian semantik dan bantuan AI chat yang sadar konteks dalam penyelesaian insiden di masa depan.
 
-
-
----
-
-2. Data Stream Processing:
-Data dialirkan melalui Kinesis (atau stream serupa) ke komponen filtering yang memastikan hanya insiden yang telah selesai (solved) yang diproses. Nama atribut adalah status dan nilainya harus salah satu dari solved atau done. Nilai selain solved dan done tidak dapat diproses.
-
-
-
-
----
-
-3. Filtering & Transformation:
-Sebuah mekanisme filter memvalidasi jenis insiden, status penyelesaian, dan mengekstrak informasi yang bermakna sebelum dilakukan vectorization. Gunakan event bridge pipeline.
-
-
-
-
----
-
-4. Vectorization Lambda:
-Sebuah Lambda function khusus mengubah data ini menjadi vector embeddings (misalnya, menggunakan Sentence Transformers atau model serupa).
-
-
-
-
----
-
-5. Vector Storage:
-Embedding kemudian disimpan dalam Vector Database (misalnya, pgvector atau yang serupa) untuk memungkinkan pencarian semantik dan bantuan AI chat yang sadar konteks dalam penyelesaian insiden di masa depan.
-
-
-
-
----
-
-Step Function
-
+### Step Function
 Sistem manajemen insiden menggunakan AWS Step Functions untuk mengorkestrasi workflow otomatis untuk pembuatan dan penyelesaian insiden. Ini dipisahkan menjadi dua state utama: incident-creation dan incident-handling. Berikut adalah rincian setiap langkah:
-
-
----
 
 1. Lks-incident-creation-state:
 
