@@ -52,11 +52,9 @@ Untuk menyediakan jalur implementasi yang jelas dan terorganisir, proyek ini dib
 > **Catatan** : Instance EC2 LLM membutuhkan akses internet keluar untuk provisioning dan konfigurasi awal.
 
 Setiap folder menyertakan file `README.md` dengan instruksi setup dan penggunaan secara rinci.
-Siap, aku lanjutkan FULL tanpa diringkas dan tetap mempertahankan struktur aslinya.
 
 ### PoC 1: Incident Detection Workflow
 Pada proof of concept pertama (PoC 1), alur penanganan insiden dimulai dengan menginstal **CloudWatch Agent** pada instance EC2 target. Agent ini mengumpulkan metrik resource sistem dan log aplikasi, serta membuat **CloudWatch log group** baru. Log filter dikonfigurasi untuk mendeteksi kata kunci tertentu seperti "**APP_CRASH**," "**APP_ERROR**," dan "**SHUTDOWN**," yang membantu mengidentifikasi masalah pada level aplikasi. Selain itu, metric filter digunakan untuk memantau penggunaan CPU di atas 70% dan penggunaan memori di atas 80%. Ketika ambang batas ini terlampaui atau entri log yang sesuai ditemukan, CloudWatch Alarm akan terpicu dan memanggil **AWS Step Function**. Step Function ini mengorkestrasi proses penanganan insiden dengan membuat record insiden baru di DynamoDB, menghasilkan ringkasan laporan dan saran tindakan menggunakan large language model (LLM), dan mengirimkan notifikasi. Notifikasi tersebut mencakup opsi konfirmasi untuk penanganan manual atau otomatis terhadap insiden, tergantung pada jenis insiden dan kebijakan yang telah ditentukan sebelumnya.
-
 
 ### PoC 2: Incident Handling and Action
 Untuk memungkinkan mekanisme respons insiden yang mulus dan fleksibel yang mendukung baik tindakan otomatis maupun manual berdasarkan jenis insiden dan keputusan responden, yang diorkestrasi melalui layanan AWS.
