@@ -83,20 +83,20 @@ Untuk membangun pipeline setelah penyelesaian yang mengubah insiden yang telah d
 
 **Workflow Summary**:
 1. **Stream Activation from DynamoDB**:
-  - DynamoDB stream diaktifkan untuk menangkap perubahan **secara real-time**, terutama ketika insiden ditandai sebagai resolved.
+    - DynamoDB stream diaktifkan untuk menangkap perubahan **secara real-time**, terutama ketika insiden ditandai sebagai resolved.
 
 2. **Data Stream Processing**:
-  - Data dialirkan melalui **Kinesis (atau stream serupa)** ke komponen filtering yang memastikan hanya insiden yang telah selesai (solved) yang diproses. Nama atribut adalah `status` dan nilainya harus salah satu dari `solved` atau `done`. Nilai selain `solved` dan `done` tidak dapat diproses.
+    - Data dialirkan melalui **Kinesis (atau stream serupa)** ke komponen filtering yang memastikan hanya insiden yang telah selesai (solved) yang diproses. Nama atribut adalah `status` dan nilainya harus salah satu dari `solved` atau `done`. Nilai selain `solved` dan `done` tidak dapat diproses.
 
 3. **Filtering & Transformation**:
-  - Sebuah mekanisme filter memvalidasi jenis insiden, status penyelesaian, dan mengekstrak informasi yang bermakna sebelum dilakukan vectorization.
-  - Gunakan event bridge pipeline.
+    - Sebuah mekanisme filter memvalidasi jenis insiden, status penyelesaian, dan mengekstrak informasi yang bermakna sebelum dilakukan vectorization.
+    - Gunakan event bridge pipeline.
 
 4. **Vectorization Lambda**:
-  - Sebuah Lambda function khusus mengubah data ini menjadi vector embeddings (misalnya, menggunakan Sentence Transformers atau model serupa).
+    - Sebuah Lambda function khusus mengubah data ini menjadi vector embeddings (misalnya, menggunakan Sentence Transformers atau model serupa).
 
 5. **Vector Storage**:
-  - Embedding kemudian disimpan dalam **Vector Database (misalnya, pgvector atau yang serupa)** untuk memungkinkan pencarian semantik dan bantuan AI chat yang sadar konteks dalam penyelesaian insiden di masa depan.
+    - Embedding kemudian disimpan dalam **Vector Database (misalnya, pgvector atau yang serupa)** untuk memungkinkan pencarian semantik dan bantuan AI chat yang sadar konteks dalam penyelesaian insiden di masa depan.
 
 ### Step Function
 Sistem manajemen insiden menggunakan AWS Step Functions untuk mengorkestrasi workflow otomatis untuk pembuatan dan penyelesaian insiden. Ini dipisahkan menjadi dua state utama: incident-creation dan incident-handling. Berikut adalah rincian setiap langkah:
