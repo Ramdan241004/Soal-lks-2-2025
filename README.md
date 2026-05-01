@@ -61,10 +61,10 @@ Pada proof of concept pertama (PoC 1), alur penanganan insiden dimulai dengan me
 Untuk memungkinkan mekanisme respons insiden yang mulus dan fleksibel yang mendukung baik tindakan otomatis maupun manual berdasarkan jenis insiden dan keputusan responden, yang diorkestrasi melalui layanan AWS.
 
 **Workflow Summary:**
-• **Trigger via Action Button (Manual/Auto):**
+- **Trigger via Action Button (Manual/Auto):**
 Alur respons dimulai ketika pengguna mengklik tombol aksi (di UI atau notifikasi) atau ketika aturan otomatis terpicu. Hal ini mengirimkan incident_id dan mode yang dipilih (manual atau auto) melalui API Gateway ke Lambda function khusus.
 
-• **Action Routing:**
+- **Action Routing:**
 Lambda function tersebut memicu **Incident Action Step Function** yang mengarahkan logika berdasarkan jenis insiden. Desain ini mendukung percabangan keputusan yang dapat diskalakan dan memungkinkan fleksibilitas dalam mendefinisikan aturan aksi baru seiring waktu. Dalam mode otomatis, sistem melakukan langkah mitigasi yang telah ditentukan berdasarkan jenis insiden:
 **HIGH_CPU:** Meluncurkan instance EC2 pengganti dengan vCPU yang ditingkatkan.
 **HIGH_MEM**: Meluncurkan instance EC2 pengganti dengan memori yang lebih besar.
@@ -72,10 +72,10 @@ Lambda function tersebut memicu **Incident Action Step Function** yang mengarahk
 **APP_SHUTDOWN**: Mencoba pemulihan penuh atau memulai strategi fallback.
 Namun, beberapa jenis insiden tidak didukung untuk penanganan otomatis. Dalam kasus tersebut, sistem harus memberikan notifikasi bahwa tindakan tidak dapat dilakukan secara otomatis, dan data insiden harus diperbarui secara manual. Lambda function telah disiapkan untuk menangani hal ini. Untuk informasi lebih lanjut, silakan merujuk ke dokumentasi AWS Lambda dan bagian AWS Step Function.
 
-• **Success and Error:**
+- **Success and Error:**
 Jika mode diatur ke manual atau jenis insiden tidak dapat diselesaikan secara otomatis, insiden akan ditandai sebagai **pending_action**. **Notifikasi konfirmasi** dikirim ke pengguna atau grup yang bertanggung jawab melalui SNS.
 
-• **State Update:**
+- **State Update:**
 Setelah tindakan—baik manual maupun otomatis—selesai, status insiden diperbarui di DynamoDB. Notifikasi akhir dikirim dengan hasil (success, failed, needs follow-up) untuk memberikan transparansi dan kemampuan audit.
 
 ### PoC 3: Incident Vectorization for AI Integration
