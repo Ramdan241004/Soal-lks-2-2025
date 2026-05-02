@@ -98,47 +98,25 @@ Untuk membangun pipeline setelah penyelesaian yang mengubah insiden yang telah d
     - Embedding kemudian disimpan dalam **Vector Database (misalnya, pgvector atau yang serupa)** untuk memungkinkan pencarian semantik dan bantuan AI chat yang sadar konteks dalam penyelesaian insiden di masa depan.
 
 ### Step Function
-Sistem manajemen insiden menggunakan AWS Step Functions untuk mengorkestrasi workflow otomatis untuk pembuatan dan penyelesaian insiden. Ini dipisahkan menjadi dua state utama: incident-creation dan incident-handling. Berikut adalah rincian setiap langkah:
+Sistem manajemen insiden menggunakan AWS Step Functions untuk mengorkestrasi workflow otomatis untuk pembuatan dan penyelesaian insiden. Ini dipisahkan menjadi dua state utama: `incident-creation` dan `incident-handling`. Berikut adalah rincian setiap langkah:
 
-1. Lks-incident-creation-state:
+1. **Lks-incident-creation-state**:
 
-• Memicu Lambda function untuk membuat insiden dan menyimpan datanya di DynamoDB.
-• Menghasilkan laporan insiden dengan dukungan dari model AI (berdasarkan log dan metrik).
-• Mengirimkan notifikasi konfirmasi kepada pengguna sebelum melanjutkan ke fase berikutnya.
+    - Memicu Lambda function untuk membuat insiden dan menyimpan datanya di DynamoDB.
+    - Menghasilkan laporan insiden dengan dukungan dari model AI (berdasarkan log dan metrik).
+    - Mengirimkan notifikasi konfirmasi kepada pengguna sebelum melanjutkan ke fase berikutnya.
 
+2. **Lks-incident-handling-state**:
 
----
-
-2. Lks-incident-handling-state:
-
-• Ketika dipicu, Step Function membaca incident_type untuk menentukan apakah auto self-healing dapat dilakukan. Nilai incident_type yang didukung:
-
-HIGH_CPU – Meluncurkan instance EC2 pengganti dengan vCPU yang ditingkatkan.
-
-HIGH_MEM – Meluncurkan instance EC2 pengganti dengan memori yang lebih besar.
-
-APP_CRASH – Me-restart service yang relevan.
-
-APP_SHUTDOWN – Mencoba pemulihan penuh atau memulai strategi fallback.
-
-
-Jika incident_type tidak didukung, Step Function memperbarui status action insiden di DynamoDB menjadi manual.
-
-
----
-
-• Memanggil Lambda yang relevan, yang melakukan remediasi otomatis dan mengembalikan status: success atau failed.
-
-Jika success → Secara otomatis memperbarui status insiden menjadi solved atau done, kemudian menandai eksekusi Step Function sebagai success.
-
-Jika error → Membaca output error, membuat file log di bucket S3 yang sudah ada pada folder logs/incident_handle_error.log dan isi file tersebut berisi detail output error.
-
-
-
----
-
-Kirim aja lanjutannya, nanti aku teruskan sampai selesai dengan format yang sama 👍
-Siap, ini aku lanjutkan FULL translation tanpa diringkas sama sekali, mengikuti struktur aslinya:
+    - Ketika dipicu, Step Function membaca `incident_type` untuk menentukan apakah auto self-healing dapat dilakukan. Nilai `incident_type` yang didukung:
+      - `HIGH_CPU` – Meluncurkan instance EC2 pengganti dengan vCPU yang ditingkatkan.
+      - `HIGH_MEM` – Meluncurkan instance EC2 pengganti dengan memori yang lebih besar.
+      - `APP_CRASH` – Me-restart service yang relevan.
+      - `APP_SHUTDOWN` – Mencoba pemulihan penuh atau memulai strategi fallback.<br>
+      Jika incident_type tidak didukung, Step Function memperbarui status action insiden di DynamoDB menjadi manual.
+    - Memanggil Lambda yang relevan, yang melakukan remediasi otomatis dan mengembalikan status: success atau failed.
+      - **Jika success** → Secara otomatis memperbarui status insiden menjadi `solved` atau `done`, kemudian menandai eksekusi Step Function sebagai `success`.
+      - **Jika error** → Membaca output error, membuat file log di bucket S3 yang sudah ada pada folder **logs/incident_handle_error.log** dan isi file tersebut berisi detail output error.
 
 
 ---
