@@ -231,94 +231,40 @@ Siap, ini aku lanjutkan FULL translation tanpa diringkas sama sekali, tetap meng
 
 ---
 
-Infrastructure as Code (IaC) Challenge
-
+### Infrastructure as Code (IaC) Challenge
 Bagian ini menantang peserta untuk menunjukkan kemampuan mereka dalam Infrastructure as Code (IaC) dengan menganalisis, melakukan debugging, dan memperluas codebase Terraform yang diberikan untuk melakukan provisioning dan konfigurasi infrastruktur respons insiden yang kuat di AWS. Meskipun setup IaC awal sudah menyediakan fondasi, peserta harus mengantisipasi bahwa sistem tersebut mungkin tidak langsung berjalan sempurna dan akan membutuhkan kemampuan analisis serta pemecahan masalah untuk mengidentifikasi dan memperbaiki isu yang ada.
 
+Context: Sebuah codebase Terraform yang sudah ada telah disediakan, yang sudah menangani provisioning komponen infrastruktur inti. Ini mencakup setup network (VPC, subnet, NAT instance), sebuah bastion host, dan sebuah instance EC2 untuk LLM, beserta security group masing-masing. Di dalam repository IaC, Anda akan menemukan direktori modules dan stacks: modules/ berisi template infrastruktur yang dapat digunakan kembali (reusable) yang dapat digunakan di berbagai stack dan berfokus pada satu resource atau solusi spesifik. **Module yang sudah ada tidak boleh dimodifikasi**, cukup tambahkan module baru jika Anda membutuhkan service yang belum tersedia. stacks/ berisi konfigurasi spesifik untuk environment atau service yang memanggil module. Setiap service atau environment baru ditambahkan di sini untuk menjaga agar service tetap terorganisir dan terisolasi. Peserta diharapkan bekerja dalam struktur yang sudah ada ini dan memperluasnya.
 
----
+**Tasks**:
 
-Context:
+1. **IaC Analysis and Debugging (Existing Infrastructure)**:
+  - Analisis kode Terraform yang disediakan untuk komponen infrastruktur yang sudah ada (network, bastion, LLM EC2, dan security group). Diharapkan bahwa IaC awal mungkin tidak berjalan sesuai yang diharapkan atau memerlukan penyesuaian kecil agar dapat berfungsi sepenuhnya.
+  - Pastikan LLM telah mengunduh model phi4-mini, silakan lihat dokumentasi ollama berikut (https://github.com/ollama/ollama/blob/main/docs/api.md) untuk menguji dan melakukan pull model dari endpoint API.
+  - Identifikasi dan perbaiki setiap masalah yang mencegah provisioning infrastruktur yang ada berjalan dengan sukses.
+  - Pastikan network diprovision dengan benar dengan:
+    - 2 public subnet.
+    - 2 private subnet.
+    - Sebuah NAT instance untuk memungkinkan akses internet keluar bagi resource di private subnet.
+  - Verifikasi bahwa bastion host dikonfigurasi untuk bertindak sebagai VPN server menggunakan WireGuard dan berfungsi sebagai NAT instance untuk private subnet.
+  - Pastikan **wg-easy** telah terinstal pada bastion host, dapat diakses melalui UI pada port yang telah ditentukan, dan password untuk UI **wg-easy** adalah **lkspass**.
+  - **Participant Instructions for WireGuard Client**:
+    - Peserta diwajibkan untuk mengunduh dan menginstal WireGuard client pada mesin lokal mereka dari: https://www.wireguard.com/install/
+    - Setelah bastion host diprovision, peserta harus mengakses UI **wg-easy** (menggunakan public IP dari bastion host dan port yang telah dikonfigurasi, dengan password **lkspass**) untuk **mengunduh file konfigurasi tunnel WireGuard**.
+    - Import file konfigurasi yang telah diunduh tersebut ke dalam WireGuard client mereka untuk membangun koneksi yang aman ke private network.
 
-Sebuah codebase Terraform yang sudah ada telah disediakan, yang sudah menangani provisioning komponen infrastruktur inti. Ini mencakup setup network (VPC, subnet, NAT instance), sebuah bastion host, dan sebuah instance EC2 untuk LLM, beserta security group masing-masing.
+2. **Target EC2 Instance Provisioning (NEW STACK)**:
+  - **Buat stack Terraform baru** di dalam direktori **stacks** yang telah ditentukan untuk instance EC2 target. Beri nama stack ini dengan sesuai (misalnya, **target-ec2**).
+  - Instance EC2 ini harus memenuhi spesifikasi berikut:
+    - **Instance Type: t3.micro**
+    - **Operating System**: Ubuntu 24.04
+    - **Application**: Install aplikasi **loadsim**. Source code untuk **loadsim** tersedia di repository yang disediakan pada folder **apps/loadsim**. Ikuti instruksi build dalam direktori tersebut.
+    - **Go Language**: Pastikan bahasa Go (minimal versi 1.21) terinstal pada instance, karena **loadsim** memerlukannya.
+    - **CloudWatch Agent Installation and Configuration**: Script **user_data.sh** (yang disebutkan di bawah) akan menangani instalasi dan konfigurasi CloudWatch Agent, termasuk setup pengumpulan log untuk **loadsim**.
+    - **User Data Script**: Script **user_data.sh** yang diperlukan untuk instance ini mencakup perintah untuk build **loadsim**, instalasi Go, setup service systemd, dan konfigurasi CloudWatch Agent. Peserta harus mengintegrasikan script ini ke dalam stack Terraform baru untuk instance EC2 target. Anda mungkin perlu memodifikasi script ini sesuai dengan kebutuhan konfigurasi Anda.
 
-Di dalam repository IaC, Anda akan menemukan direktori modules dan stacks:
+3. **Database Stack Provisioning (NEW STACK)**:
+  - **Buat stack Terraform baru lainnya** di dalam direktori **stacks** yang telah ditentukan untuk database. Beri nama stack ini dengan sesuai (misalnya, **postgres-db**).
+  - Refer ke bagian Relational Database dalam dokumentasi proyek untuk requirement detail terkait setup database, termasuk penggunaan PostgreSQL dengan extension **pgvector**. Melakukan provisioning database ini menggunakan IaC akan meningkatkan skor Anda.
 
-modules/ berisi template infrastruktur yang dapat digunakan kembali (reusable) yang dapat digunakan di berbagai stack dan berfokus pada satu resource atau solusi spesifik. Module yang sudah ada tidak boleh dimodifikasi, cukup tambahkan module baru jika Anda membutuhkan service yang belum tersedia.
-
-stacks/ berisi konfigurasi spesifik untuk environment atau service yang memanggil module. Setiap service atau environment baru ditambahkan di sini untuk menjaga agar service tetap terorganisir dan terisolasi.
-
-
-Peserta diharapkan bekerja dalam struktur yang sudah ada ini dan memperluasnya.
-
-
----
-
-Tasks:
-
-1. IaC Analysis and Debugging (Existing Infrastructure):
-
-• Analisis kode Terraform yang disediakan untuk komponen infrastruktur yang sudah ada (network, bastion, LLM EC2, dan security group). Diharapkan bahwa IaC awal mungkin tidak berjalan sesuai yang diharapkan atau memerlukan penyesuaian kecil agar dapat berfungsi sepenuhnya.
-
-• Pastikan LLM telah mengunduh model phi4-mini, silakan lihat dokumentasi ollama berikut (https://github.com/ollama/ollama/blob/main/docs/api.md) untuk menguji dan melakukan pull model dari endpoint API.
-
-• Identifikasi dan perbaiki setiap masalah yang mencegah provisioning infrastruktur yang ada berjalan dengan sukses.
-
-• Pastikan network diprovision dengan benar dengan:
-o 2 public subnet.
-o 2 private subnet.
-o Sebuah NAT instance untuk memungkinkan akses internet keluar bagi resource di private subnet.
-
-• Verifikasi bahwa bastion host dikonfigurasi untuk bertindak sebagai VPN server menggunakan WireGuard dan berfungsi sebagai NAT instance untuk private subnet.
-
-• Pastikan wg-easy telah terinstal pada bastion host, dapat diakses melalui UI pada port yang telah ditentukan, dan password untuk UI wg-easy adalah lkspass.
-
-
----
-
-• Participant Instructions for WireGuard Client:
-
-o Peserta diwajibkan untuk mengunduh dan menginstal WireGuard client pada mesin lokal mereka dari:
-https://www.wireguard.com/install/
-
-o Setelah bastion host diprovision, peserta harus mengakses UI wg-easy (menggunakan public IP dari bastion host dan port yang telah dikonfigurasi, dengan password lkspass) untuk mengunduh file konfigurasi tunnel WireGuard.
-
-o Import file konfigurasi yang telah diunduh tersebut ke dalam WireGuard client mereka untuk membangun koneksi yang aman ke private network.
-
-
----
-
-2. Target EC2 Instance Provisioning (NEW STACK):
-
-• Buat stack Terraform baru di dalam direktori stacks yang telah ditentukan untuk instance EC2 target. Beri nama stack ini dengan sesuai (misalnya, target-ec2).
-
-• Instance EC2 ini harus memenuhi spesifikasi berikut:
-
-• Instance Type: t3.micro
-• Operating System: Ubuntu 24.04
-• Application: Install aplikasi loadsim. Source code untuk loadsim tersedia di repository yang disediakan pada folder apps/loadsim. Ikuti instruksi build dalam direktori tersebut.
-
-• Go Language: Pastikan bahasa Go (minimal versi 1.21) terinstal pada instance, karena loadsim memerlukannya.
-
-• CloudWatch Agent Installation and Configuration: Script user_data.sh (yang disebutkan di bawah) akan menangani instalasi dan konfigurasi CloudWatch Agent, termasuk setup pengumpulan log untuk loadsim.
-
-• User Data Script: Script user_data.sh yang diperlukan untuk instance ini mencakup perintah untuk build loadsim, instalasi Go, setup service systemd, dan konfigurasi CloudWatch Agent. Peserta harus mengintegrasikan script ini ke dalam stack Terraform baru untuk instance EC2 target. Anda mungkin perlu memodifikasi script ini sesuai dengan kebutuhan konfigurasi Anda.
-
-
----
-
-3. Database Stack Provisioning (NEW STACK):
-
-• Buat stack Terraform baru lainnya di dalam direktori stacks yang telah ditentukan untuk database. Beri nama stack ini dengan sesuai (misalnya, postgres-db).
-
-• Refer ke bagian Relational Database dalam dokumentasi proyek untuk requirement detail terkait setup database, termasuk penggunaan PostgreSQL dengan extension pgvector. Melakukan provisioning database ini menggunakan IaC akan meningkatkan skor Anda.
-
-
----
-
-Infrastruktur Anda dan project manifest Kubernetes harus di-upload ke S3 menggunakan bucket yang sudah ada pada folder infrastructure.
-
-
----
-
-Kalau masih ada bagian lain (biasanya ada penilaian / scoring / diagram), kirim aja—aku lanjutkan tetap full tanpa diringkas 👍
+Infrastruktur Anda dan project manifest Kubernetes harus **di-upload ke S3** menggunakan bucket yang sudah ada pada folder **Infrastructure**. 
